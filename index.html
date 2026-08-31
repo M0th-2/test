@@ -110,6 +110,12 @@ html, body {
     background: rgba(251, 247, 253, 0.78);
     backdrop-filter: blur(14px) saturate(140%);
     border-bottom: 1px solid rgba(183, 154, 232, 0.25);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .navbar::-webkit-scrollbar{
+  display: none; /* chowa scrollbar na Chrome/Safari */
   }
   .navbar .logo-mark{
     width:38px; height:38px; border-radius:11px;
