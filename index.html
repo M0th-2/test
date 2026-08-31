@@ -1,32 +1,1972 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strona</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratorium Muzyki</title>
+
+<style>
+  /* =========================================================
+     TOKENY / ZMIENNE — pastelowa paleta różu, fioletu, błękitu
+     ========================================================= */
+  :root{ 
+    --rose:        #f7d6e8;
+    --rose-deep:   #e7a9cf;
+    --violet:      #d9c7f4;
+    --violet-deep: #b79ae8;
+    --sky:         #c6e2f7;
+    --sky-deep:    #8fc2ed;
+    --azure:       #cdeefb;
+
+    --ink:         #3a2f4d;
+    --ink-soft:    #6c5f82;
+    --paper:       #fbf7fd;
+    --paper-deep:  #f3edfa;
+
+    --accent:      #a989d9;
+    --accent-2:    #6fb4e0;
+
+    --shadow-soft: 0 8px 24px rgba(120, 90, 160, 0.12);
+    --shadow-lift: 0 14px 34px rgba(120, 90, 160, 0.22);
+
+    --font-display: 'Fraunces', 'Georgia', serif;
+    --font-body: 'Outfit', 'Segoe UI', sans-serif;
+
+    --nav-h: 68px;
+  }
+
+  @font-face{
+    font-family:'Fraunces';
+    src: local('Georgia');
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family: var(--font-body);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, var(--rose) 0%, transparent 55%),
+      radial-gradient(1000px 600px at 100% 0%, var(--sky) 0%, transparent 55%),
+      linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+    background-attachment: fixed;
+    color: var(--ink);
+    overflow-x:hidden;
+  }
+
+  ::selection{ background: var(--violet-deep); color:#fff; }
+
+  /* =========================================================
+     PRELOADER — przyciemniony ekran z logo na 0.5s
+     ========================================================= */
+  #preloader{
+    position:fixed; inset:0; z-index:999;
+    display:flex; align-items:center; justify-content:center;
+    background: linear-gradient(135deg, #2c1f40 0%, #4a3166 55%, #2c1f40 100%);
+    transition: opacity .7s ease, visibility .7s ease;
+  }
+  #preloader.hide{ opacity:0; visibility:hidden; pointer-events:none; }
+
+  .preloader-logo{
+    display:flex; flex-direction:column; align-items:center; gap:18px;
+    animation: logoPulse 1.1s ease-in-out infinite alternate;
+  }
+  .preloader-logo .mark{
+    width:96px; height:96px; border-radius:26px;
+    background: linear-gradient(135deg, var(--rose-deep), var(--violet-deep) 55%, var(--sky-deep));
+    box-shadow: 0 0 60px rgba(217, 199, 244, 0.55);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display);
+    font-size:40px; font-weight:700; color:#fff;
+  }
+  .preloader-logo .word{
+    font-family: var(--font-display);
+    font-size: 22px; letter-spacing: 0.35em; color:#f3edfa;
+    text-transform:uppercase;
+  }
+  @keyframes logoPulse{
+    from{ transform:scale(1); filter:brightness(1); }
+    to{ transform:scale(1.06); filter:brightness(1.12); }
+  }
+
+  /* =========================================================
+     NAVBAR
+     ========================================================= */
+  .navbar{
+    position:sticky; top:0; z-index:50;
+    height: var(--nav-h);
+    display:flex; align-items:center; gap:14px;
+    padding: 0 26px;
+    background: rgba(251, 247, 253, 0.78);
+    backdrop-filter: blur(14px) saturate(140%);
+    border-bottom: 1px solid rgba(183, 154, 232, 0.25);
+  }
+  .navbar .logo-mark{
+    width:38px; height:38px; border-radius:11px;
+    background: linear-gradient(135deg, var(--rose-deep), var(--violet-deep) 55%, var(--sky-deep));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-family: var(--font-display); font-weight:700; font-size:17px;
+    box-shadow: var(--shadow-soft);
+    transition: transform .35s ease, box-shadow .35s ease;
+  }
+  .navbar .logo-mark:hover{ transform: rotate(-6deg) scale(1.08); box-shadow: var(--shadow-lift); }
+
+  .navbar .brand{
+    font-family: var(--font-display);
+    font-weight:700; font-size:21px; letter-spacing:.06em;
+    background: linear-gradient(90deg, var(--violet-deep), var(--sky-deep));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .navbar .tagline{
+    margin-left:6px; font-size:12.5px; color: var(--ink-soft); letter-spacing:.04em;
+    display:none;
+  }
+  @media(min-width:640px){ .navbar .tagline{ display:inline; } }
+
+  /* Kafelki przedmiotów w navbarze */
+  .subject-tiles{
+    display:flex; align-items:center; gap:8px;
+    margin-left: 18px;
+    padding-left: 18px;
+    border-left: 1px solid rgba(183,154,232,0.35);
+  }
+  .subject-tile{
+    font-family: var(--font-body);
+    font-weight:700; font-size:13.5px; letter-spacing:.04em;
+    padding: 8px 16px;
+    border-radius: 12px;
+    color: var(--ink-soft);
+    background: rgba(255,255,255,0.5);
+    border: 1px solid rgba(183,154,232,0.25);
+    cursor:pointer;
+    transition: transform .25s ease, box-shadow .25s ease, background .3s ease, color .25s ease;
+    user-select:none;
+  }
+  .subject-tile:hover{
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+    color: var(--ink);
+    background: rgba(255,255,255,0.9);
+  }
+  .subject-tile.active{
+    color:#fff;
+    background: linear-gradient(120deg, var(--rose-deep), var(--violet-deep) 60%, var(--sky-deep));
+    border-color: transparent;
+    box-shadow: var(--shadow-lift);
+  }
+ @media(max-width: 900px){
+  .app-shell{
+    flex-direction: column;
+    padding: 14px 12px 0;
+    gap: 14px;
+  }
+  .sidebar{
+    width: 100%;
+    position: static;
+    flex: none;
+    border-radius: 14px;
+    padding: 12px 10px;
+  }
+  .content-area{
+    padding: 22px 16px 32px;
+    width: 100%;
+    border-radius: 16px;
+    min-height: auto;
+  }
+  .lesson-title{
+    font-size: clamp(22px, 6vw, 32px);
+  }
+  .lesson-subtitle{
+    font-size: 15px;
+  }
+  .lesson-body{
+    font-size: 15px;
+    max-width: 100%;
+  }
+
+  /* tabele i obrazki nie wylewają się poza ekran */
+  .lesson-body table,
+  .lesson-body img,
+  .lesson-body div {
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  table{
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ćwiczenia — przyciski nie wylewają się */
+  #intervalButtons,
+  #img-answer-buttons,
+  #d2-answer-buttons{
+    gap: 8px;
+  }
+}
+
+@media(max-width: 480px){
+  .navbar{
+    padding: 0 14px;
+    gap: 8px;
+  }
+  .subject-tiles{
+    gap: 5px;
+    margin-left: 6px;
+    padding-left: 6px;
+  }
+  .subject-tile{
+    padding: 6px 9px;
+    font-size: 11.5px;
+    border-radius: 9px;
+  }
+  .navbar .brand{
+    font-size: 17px;
+  }
+  .content-area{
+    padding: 16px 12px 24px;
+  }
+}
+
+  /* =========================================================
+     LAYOUT GŁÓWNY
+     ========================================================= */
+  .app-shell{
+    display:flex;
+    align-items:flex-start;
+    min-height: calc(100vh - var(--nav-h));
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 28px 22px 0;
+    gap: 26px;
+  }
+
+  /* =========================================================
+     SIDEBAR
+     ========================================================= */
+  .sidebar{
+    flex: 0 0 270px;
+    position: sticky;
+    top: calc(var(--nav-h) + 24px);
+    background: rgba(255,255,255,0.55);
+    border: 1px solid rgba(183,154,232,0.28);
+    border-radius: 20px;
+    padding: 18px 14px;
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(8px);
+  }
+  .sidebar h2{
+    font-family: var(--font-display);
+    font-size: 14px; text-transform:uppercase; letter-spacing:.14em;
+    color: var(--ink-soft); margin: 4px 8px 14px;
+  }
+
+  .lesson-group{ margin-bottom: 8px; }
+
+  .lesson-tile{
+    position:relative;
+    padding: 13px 16px;
+    border-radius: 14px;
+    font-weight:600; font-size:15px;
+    color: var(--ink);
+    background: linear-gradient(120deg, rgba(247,214,232,.55), rgba(214,199,244,.5));
+    cursor:default;
+    transition: transform .3s ease, box-shadow .3s ease, background .3s ease;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .lesson-tile:hover, .lesson-tile.active-parent{
+    transform: translateX(4px);
+    box-shadow: var(--shadow-soft);
+    background: linear-gradient(120deg, rgba(247,214,232,.9), rgba(214,199,244,.85));
+  }
+  .lesson-tile .chev{
+    transition: transform .35s ease;
+    font-size:12px; color: var(--ink-soft);
+  }
+  .lesson-group:hover .chev,
+  .lesson-group.open .chev{ transform: rotate(90deg); }
+
+  .sublesson-list{
+    overflow:hidden;
+    max-height:0;
+    opacity:0;
+    transform: translateY(-4px);
+    transition: max-height .4s ease, opacity .35s ease, transform .35s ease, margin .35s ease;
+    margin-top:0;
+  }
+  .lesson-group:hover .sublesson-list,
+  .lesson-group.open .sublesson-list{
+    max-height: 300px;
+    opacity:1;
+    transform: translateY(0);
+    margin-top:8px;
+  }
+
+  .sub-tile{
+    padding: 10px 16px 10px 30px;
+    margin: 6px 0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight:500;
+    color: var(--ink-soft);
+    background: rgba(255,255,255,0.5);
+    cursor:pointer;
+    border: 1px solid transparent;
+    transition: background .25s ease, color .25s ease, border-color .25s ease, transform .25s ease;
+  }
+  .sub-tile:hover{
+    background: rgba(255,255,255,0.95);
+    color: var(--accent);
+    border-color: rgba(183,154,232,0.4);
+    transform: translateX(3px);
+  }
+  .sub-tile.active{
+    background: linear-gradient(120deg, var(--sky-deep), var(--violet-deep));
+    color:#fff;
+    border-color:transparent;
+    box-shadow: var(--shadow-soft);
+  }
+
+  /* =========================================================
+     GŁÓWNA TREŚĆ — zajmuje najwięcej miejsca
+     ========================================================= */
+  .content-area{
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: calc(100vh - var(--nav-h) - 60px);
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(183,154,232,0.25);
+    border-radius: 24px;
+    padding: 46px 52px 56px;
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(6px);
+    position:relative;
+    overflow:hidden;
+  }
+  .content-area::before{
+    content:"";
+    position:absolute; top:-120px; right:-120px;
+    width:320px; height:320px; border-radius:50%;
+    background: radial-gradient(circle, rgba(140,194,237,.35), transparent 70%);
+    pointer-events:none;
+  }
+
+  .lesson-content{
+    animation: contentIn .5s ease;
+    position:relative; z-index:1;
+  }
+  @keyframes contentIn{
+    from{ opacity:0; transform: translateY(14px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .eyebrow{
+    display:inline-block;
+    font-size:12.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    color: #fff;
+    background: linear-gradient(90deg, var(--rose-deep), var(--violet-deep));
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+
+  .lesson-title{
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 700;
+    margin: 0 0 10px;
+    color: var(--ink);
+    line-height:1.15;
+  }
+  .lesson-subtitle{
+    font-size: 18px;
+    color: var(--ink-soft);
+    margin: 0 0 30px;
+    font-weight:500;
+    border-left: 4px solid var(--accent-2);
+    padding-left: 14px;
+  }
+
+  .lesson-body{
+    font-size: 16.5px;
+    line-height: 1.85;
+    color: var(--ink);
+    max-width: 760px;
+  }
+  .lesson-body p{ margin: 0 0 18px; }
+  .lesson-body strong{ color: var(--violet-deep); }
+
+  .welcome-screen{
+    display:flex; flex-direction:column; align-items:flex-start;
+    justify-content:center;
+    min-height: 50vh;
+    gap: 14px;
+  }
+  .welcome-screen .big-mark{
+    width:72px; height:72px; border-radius:20px;
+    background: linear-gradient(135deg, var(--rose-deep), var(--violet-deep) 55%, var(--sky-deep));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-family: var(--font-display); font-weight:700; font-size:30px;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 8px;
+  }
+
+  /* =========================================================
+     STOPKA
+     ========================================================= */
+  .site-footer{
+    margin-top: 60px;
+    padding: 50px 24px 36px;
+    background: linear-gradient(135deg, #efe1f7, #dceefb 55%, #fbe3ef);
+    border-top: 1px solid rgba(183,154,232,0.3);
+  }
+  .footer-inner{
+    max-width: 1100px; margin:0 auto;
+    display:flex; flex-wrap:wrap; justify-content:space-between; gap:32px;
+  }
+  .footer-col h3{
+    font-family: var(--font-display);
+    font-size:17px; margin: 0 0 12px; color: var(--ink);
+  }
+  .footer-col p, .footer-col a{
+    font-size:14.5px; color: var(--ink-soft); line-height:1.8;
+    text-decoration:none;
+  }
+  .footer-col a{ display:block; transition: color .25s ease, transform .25s ease; }
+  .footer-col a:hover{ color: var(--accent); transform: translateX(3px); }
+  .footer-bottom{
+    text-align:center; margin-top:34px; font-size:13px; color: var(--ink-soft);
+  }
+
+  /* =========================================================
+     RESPONSYWNOŚĆ
+     ========================================================= */
+  @media(max-width: 900px){
+    .app-shell{ flex-direction:column; }
+    .sidebar{ width:100%; position:static; flex:none; }
+    .content-area{ padding: 32px 24px 40px; width:100%; }
+  }
+
+  /* Widok startowy / strona główna — sidebar zostaje puste miejsce, treść się nie rozciąga */
+  .app-shell.home-mode .sidebar{
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .app-shell.home-mode .content-area{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .app-shell.home-mode .welcome-screen{
+    align-items: center;
+    text-align: center;
+    min-height: auto;
+  }
+  .app-shell.home-mode .welcome-screen .lesson-subtitle{
+    border-left: none;
+    padding-left: 0;
+  }
+  .app-shell.home-mode .about-page{
+    max-width: 680px;
+    width: 100%;
+    text-align: left;
+  }
+  .app-shell.home-mode .about-page .eyebrow,
+  .app-shell.home-mode .about-page .lesson-title,
+  .app-shell.home-mode .about-page .lesson-subtitle{
+    text-align: left;
+  }
+
+  .navbar .brand-link{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
 </head>
 <body>
-    <div class="box">
-        
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>STRONA</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    
-    <div class="box1">
-     <h1 style="text-align: center;"> yippie </h1>
-        <br>  
-        
-        <br>
-        <p> weeee</p>
-    
-        
-            
+
+  <!-- PRELOADER -->
+  <div id="preloader">
+    <div class="preloader-logo">
+      <img src="logo.png" alt="LM" width="300" height="300">
+      <div class="word">Ładowanie</div>
     </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <button class="brand-link" id="home-link" type="button" aria-label="Strona główna">
+       <img src="logo.png" alt="LM" width="50" height="50">
+    <span class="brand">Laboratorium Muzyki</span>
+    </button>
+    <span class="tagline">#kochamygisa</span>
+    <div class="subject-tiles" id="subject-tiles">
+      <div class="subject-tile" data-subject="onas">O nas</div>
+      <div class="subject-tile" data-subject="ks">Kształcenie słuchu</div>
+      <div class="subject-tile" data-subject="aud">Audycje Muzyczne</div> 
+      <div class="subject-tile" data-subject="ex">Ćwiczenia</div>
+    </div>
+  </nav>
+
+  <!-- LAYOUT -->
+  <div class="app-shell">
+    <aside class="sidebar">
+      <h2 id="sidebar-title">Lekcje</h2>
+      <div id="sidebar-list"></div>
+    </aside>
+
+    <main class="content-area" id="content-area">
+      <!-- treść wstrzykiwana przez JS -->
+    </main>
+  </div>
+
+  <!-- STOPKA -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <h3>LM</h3>
+        <p>Szacuje się, że 1 na 10 000 osób jest obdarzona słuchem absolutnym. Trzeba jednak wziąć pod uwagę to, że tę szczególną zdolność wykrywa się w środowisku muzycznym, a więc istnieje wiele osób nieświadomych swojego słuchu absolutnego.
+        
+   
+      </div>
+      <div class="footer-col">
+        
+      </div>
+      <div class="footer-col">
+        <h3>Kontakt</h3>
+        <a href="laboratorium.muzyki2425@gmail.com">laboratorium.muzyki2425@gmail.com</a>
+        <a href="laboratorium.muzyki@interia.pl">laboratorium.muzyki@interia.pl</a>
+       
+      </div>
+    </div>
+    <div class="footer-bottom">Laboratorium Muzyki</div>
+  </footer>
+
+<script>
+/* =====================================================================
+   ====================  BAZA TREŚCI LEKCJI  =========================
+   =====================================================================
+   TU UZUPEŁNIASZ LEKCJE.
+   Obiekt SUBJECTS ma trzy klucze odpowiadające kafelkom w navbarze:
+   "ks", "ex", "har". Każdy z nich zawiera "label" (nazwa do nagłówka
+   sidebaru) oraz "lessons" — tablicę lekcji w takim samym formacie
+   jak wcześniej.
+
+   Każda lekcja ma pole "title" (nazwa widoczna w sidebarze)
+   oraz "sublessons" — listę podlekcji.
+   Każda podlekcja ma:
+     - title    -> nazwa widoczna w sidebarze (kafelek)
+     - heading  -> tytuł główny w treści
+     - subtitle -> podtytuł w treści
+     - body     -> tablica akapitów (HTML dozwolony, np. <strong>)
+
+   Dodanie nowej lekcji = dodanie nowego obiektu do tablicy "lessons"
+   danego przedmiotu. Dodanie nowego przedmiotu = dodanie nowego klucza
+   do SUBJECTS i odpowiadającego mu kafelka w navbarze (HTML) oraz
+   atrybutu data-subject o tej samej nazwie.
+   ===================================================================== */
+
+const SUBJECTS = {
+  ks: {
+    label: "Kształcenie słuchu",
+    lessons: [
+      {
+        id: "wszystkie",
+        sublessons: [
+  {
+  id: "intervaly",
+  title: "Interwały",
+  heading: "Interwały",
+  subtitle: "Odległości między dźwiękami w muzyce",
+  body: [
+    "<strong>Interwały proste</strong> - Interwały w obrębie oktawy nazywamy prostymi a interwały wykraczające poza oktawę - <strong>złożonymi.</strong>",
+    "<strong>Konsonanse</strong> - to interwały zgodnie brzmiące. Dzielą się na <b> doskonałe</b> (pryma, oktawa, kwarta czysta i kwinta czysta) i <b>niedoskonałe</b> (tercja mała, tercja wielka, seksta mała, seksta wielka).",
+    "<strong>Dysonanse</strong> to interwały niezgodnie brzmiące (brzmią ostro, drażnią ucho). Zaliczamy do nich sekundę małą, sekundę wielką, septymę małą, septymę wielką oraz trytony (kwarta zwiększona i kwinta zmniejszona). W interwałach seksty i większych znak chromatyczny piszemy jeden pod drugim w linii pionowej. W interwałach mniejszych - trochę skośnie, górny znak bliżej nuty.",
+    "<strong>Interwał charakterystyczny</strong>to interwał zwiększony lub zmniejszony",
+    `<table style="
+        width:100%;
+        border-collapse:collapse;
+        font-size:15px;
+        margin:28px 0 10px;
+        border-radius:16px;
+        overflow:hidden;
+        box-shadow:0 4px 20px rgba(120,90,160,0.13);
+      ">
+      <thead>
+        <tr style="background:linear-gradient(90deg,#e7a9cf,#b79ae8 55%,#8fc2ed);color:#fff;">
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Interwał</th>
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Symbol</th>
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Rozmiar (odległość półtonów)</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${[
+          ["Pryma czysta",       "1",   "0"],
+          ["Sekunda mała",       "2>",  "1"],
+          ["Sekunda wielka",     "2<",  "2"],
+          ["Tercja mała",        "3<",  "3"],
+          ["Tercja wielka",      "3>",  "4"],
+          ["Kwarta czysta",      "4",   "5"],
+          ["Tryton",             "4< / 5>",  "6"],
+          ["Kwinta czysta",      "5",   "7"],
+          ["Seksta mała",        "6>",  "8"],
+          ["Seksta wielka",      "6<",  "9"],
+          ["Septyma mała",       "7>",  "10"],
+          ["Septyma wielka",     "7<",  "11"],
+          ["Oktawa czysta",      "8",   "12"],
+        ].map(([name, short, semi], i) => `
+          <tr style="background:${i % 2 === 0 ? 'rgba(255,255)' : 'rgba(217,199)'};">
+            <td style="padding:11px 16px;font-weight:600;color:#3a2f4d;">${name}</td>
+            <td style="padding:11px 16px;font-family:monospace;font-size:14px;color:#a989d9;font-weight:700;">${short}</td>
+            <td style="padding:11px 16px;text-align:center;">${semi}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`,
+    "<strong>Interwały złożone</strong> - Interwałem złożonym nazywamy interwał wykraczający poza oktawę. Jest to interwał, który składa się z oktawy i interwału prostego.",
+`<table style="
+        width:100%;
+        border-collapse:collapse;
+        font-size:15px;
+        margin:28px 0 10px;
+        border-radius:16px;
+        overflow:hidden;
+        box-shadow:0 4px 20px rgba(120,90,160,0.13);
+      ">
+      <thead>
+        <tr style="background:linear-gradient(90deg,#e7a9cf,#b79ae8 55%,#8fc2ed);color:#fff;">
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Interwał</th>
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Symbol</th>
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Rozmiar (odległość półtonów)</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${[
+          ["Nonna mała",  "9>",   "13"],
+          ["Nonna wielka", "9",  "14"],
+          ["Decyma mała",  "10>",  "15"],
+          ["Decyma wielka","10",  "16"],
+          ["Undecyma",     "11",  "17"],
+          ["Duodecyma",    "12",   "18"],
+          ["Tridecyma",    "13",  "19"],
+          ["Kwintdecymy",  "14",   "20"],
+          ["(podwójna oktawa)", "15",  "21"],
+
+        ].map(([name, short, semi], i) => `
+          <tr style="background:${i % 2 === 0 ? 'rgba(255,255)' : 'rgba(217,199)'};">
+            <td style="padding:11px 16px;font-weight:600;color:#3a2f4d;">${name}</td>
+            <td style="padding:11px 16px;font-family:monospace;font-size:14px;color:#a989d9;font-weight:700;">${short}</td>
+            <td style="padding:11px 16px;text-align:center;">${semi}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`,
+   "<strong>Przekształcenie interwału</strong> - to zmiana rozmiaru interwału za pomocą odpowiedniego znaku chromatycznego",
+   "<strong>Przeistoczenie interwału</strong> - polega na zbudowaniu interwału równoważnego enharmonicznie.",
+   "<h2>Enharmonia</h2> Polega na zmianie pisowni i nazwy dźwięku bez zmiany jego brzmienia. Dźwięki o różnej nazwie i pisowni, będące na różnych stopniach, posiadające tę samą wysokość nazywamy dźwiękami enharmonicznymi lub enharmonicznie równoważnymi."
+  ]
+},
+{   id: "Klucze",
+  title: "Klucze",
+  heading: "Klucze muzyczne",
+  subtitle: "Zapis i nazewnictwo Kluczy",
+  body: [
+    "Klucz to znak, który stawiamy na początku systemu liniowego. Wyznacza on położenie na pięciolinii dźwięku zwanego kluczowym. Rozróżniamy rodzaje kluczy: G, F oraz C",
+    `<div style="display:flex;flex-direction:column;gap:12px;margin:24px 0;">
+      ${[
+      { src: "https://placehold.co/100x100/6fb4e0/3a2f4d?text=G", opis: "<strong><h2>Klucze C</h2></strong>" },
+        { src: "K1.png", opis: "Klucz dyszkantowy" },
+        { src: "K2.png", opis: "Klucz wiolinowy" },
+        { src: "https://placehold.co/100x100/a989d9/3a2f4d?text=F", opis: "<strong><h2>Klucze F</h2></strong>" },
+        { src: "K3.png", opis: "Klucz barytonowy" },
+        { src: "K4.png", opis: "Klucz basowy" },
+        { src: "K5.png", opis: "Klucz subbasowy" },
+        { src: "https://placehold.co/100x100/e7a9cf/3a2f4d?text=C ", opis: "<strong><h2>Klucze C</h2></strong>" },
+        { src: "K6.png", opis: "Klucz sopranowy" },
+        { src: "K7.png", opis: "Klucz mezzosopranowy" },
+        { src: "K8.png", opis: "Klucz altowy" },
+        { src: "K9.png", opis: "Klucz tenorowy" },
+      ].map(({ src, opis }) => `
+        <div style="
+          display:flex;
+          align-items:center;
+          gap:18px;
+          padding:10px 16px;
+          border-radius:14px;
+          box-shadow:0 2px 10px rgba(120,90,160,0.07);
+          transition:transform .25s ease;
+          border:1px solid rgba(183,154,232,0.2);
+          
+        ">
+          <img
+            src="${src}"
+            width="80"
+            height="100"
+           
+            alt="${opis}"
+          >
+          <span style="font-size:15px;font-weight:500;color:#3a2f4d;">${opis}</span>
+        </div>
+      `).join('')}
+    </div>`,
+    "Klucze umieszczano w różnych miejscach systemu liniowego, w zależności od tego, dla jakiego głosu był przeznaczony.",
+    "Obecnie jednak odeszło się od używania większości tych kluczy, aby poprawić czytelność zapisu.",
+    "<B>Ciekwostka</b>",
+    "Jak wspominaliśmy, każdy klucz swoim kształtem wyznacza położenie nuty kluczowej. Kształty te pochodzą od liter greckich umieszczanych dawniej na początku linii. Wybór tych liter nie był przypadkowy - pod nimi w tonacjach kościelnych znajdowały się półtony.",
+  ] },
+ {  id: "Skale",
+  title: "Skale",
+  heading: "Skale, Gamy Tonacje",
+  subtitle: "Porządek dźwięków",
+  body: [
+    "to wybór dźwięków ułożonych według stałego schematu w obrębie oktawy, z określonym dźwiękiem centralnym. Podstawą Europejskiej muzyki są skale systemu tonalnego, skale siedmiostopniowe (w których ósmy dźwięk jest powtórzeniem pierwszego w odległości oktawy). Są to: skala majorowa (durowa) oraz skala minorowa (molowa).",
+    "Skalę rozpoczynającą sie od określonego dźwięku nazywamy gamą. Jest to skala z określonym co do wysokości materiałem dźwiękowym. Wszystkie stopnie gamy mają swoje określone 'funkcje', tak więc mamy:",
+    `<table style="
+        width:100%;
+        border-collapse:collapse;
+        font-size:15px;
+        margin:28px 0 10px;
+        border-radius:16px;
+        overflow:hidden;
+        box-shadow:0 4px 20px rgba(120,90,160,0.13);
+      ">
+      <thead>
+        <tr style="background:linear-gradient(90deg,#e7a9cf,#b79ae8 55%,#8fc2ed);color:#fff;">
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Stopień</th>
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Nazwa</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${[
+          ["I",  "tonika (T) - to punkt centralny gamy"],
+          ["II",  "dźwięk prowadzący w dół"],
+          ["III",  "medianta"],
+          ["IV",  "subdominanta (S) czyli dominanta dolna (sub = pod)"],
+          ["V",  "dominanta (D), z łaciny dominus = dominujący"],
+          ["VI",  "submedianta"],
+          ["VII",  "dźwięk prowadzący w w górę (o silnym ciążeniu)"],
+          ["VIII",  "= powtórzenie I"],
+
+        ].map(([Stopień, Nazwa], i) => `
+          <tr style="background:${i % 2 === 0 ? 'rgba(255,255,255,0.6)' : 'rgba(217,199,244,0.2)'};">
+            <td style="padding:11px 16px;font-weight:600;color:#3a2f4d;">${Stopień}</td>
+            <td style="padding:11px 16px;font-family:monospace;font-size:14px;color:#a989d9;font-weight:700;">${Nazwa}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`,
+    "<H1>Tonacja</h1>",
+    "całokształt stosunków między toniką, jak punktem centralnym, a poszczególnymi stopniami gamy. Kiedy materiałem dźwiękowym danego utworu jest określona gama, mówimy, że utwór jest utrzymany w tej tonacji.",
+    "<H1>Diatonika</h1>",
+    "to zasada posługiwania się wyłącznie dźwiękami składowymi określonej gamy - dźwiękami gamowłaściwymi. Jeśli podwyższymy lub obniżymy dźwięk gamowłaściwy za pomocą znaku przynutowego, nazywamy takie zjawisko alteracją.",
+    "<H1>Chromatyka</h1>",
+    "to zasada takiego doboru dźwięków, aby w szeregu oprócz dźwięków gamowłaściwymi zastosować ich obniżenia lub podwyższenia za pomocą znaków przynutowych, aby postępowały po sobie półtonami.",
+
+  ]},
+  {  id: "Rytm",
+  title: "Rytm",
+  heading: "Rytm",
+  subtitle: "Porządek dźwięków i ciszy w czasie",
+  body: [
+    "Oprócz wysokości dźwięków, do czytania nut potrzebna jest też znajomość wartości rytmicznych. Kierunek laseczek nie ma znaczenia dla wartości, jest to zwyczajnie element ortografii.",
+    "<b>Przyjmuje się, że na pięciolinii od trzeciej linii wzwyż laseczki zapisujemy w dół, a poniżej trzeciej linii - w górę.</b>",
+    '<img src="N1.png" alt="laseczki">',
+    "<u>Cała nuta</u>",
+    "Zajmuje 4 wartości i jest najdłuższą nutą.",
+    '<img src="N2.png" alt="nuty">',
+    "<u>Półnuta</u>",
+    "Trwa przez dwie wartości, a więc jest połową całej nuty - to znaczy że w całej nucie mieszczą się one dwie.",
+    '<img src="N3.png" alt="nuty">',
+    "<u>Ćwierćnuta</u>",
+    "Zajmuje jedną miarę, co oznacza, że w całej nucie mieszczą się cztery ćwierćnuty, a w półnucie dwie.",
+    '<img src="N4.png" alt="nuty">',
+    "<u>Ósemka</u>",
+    "Analogicznie jest to połowa ćwierćnuty, w półnucie mieszczą się cztery, a w całej nucie – osiem.",
+    '<img src="N5.png" alt="nuty">',
+    "<u>Szesnastka</u>",
+    "To ostatnia z tych najczęściej używanych podstawowych wartości, która, jak można się domyślić, jest połową ósemki,",
+    '<img src="N6.png" alt="nuty">',
+    "<i>a więc w ćwierćnucie mieszczą się cztery, w półnucie - osiem, w całej nucie - szesnaście. To właśnie z powodu tego, że mieści się ich szesnaście w całej nucie, wzięła się nazwa.</i>",
+    '<img src="N7.png" alt="nuty">',
+    "<b>Jeśli przy nucie z jej prawej strony doda się kropkę, oznacza to wydłużenie jej trwania o połowę.</b>",
+    "Przykładowo, jeśli do ćwierćnuty dodamy kropkę, będzie ona trwała tyle, co ćwierćnuta i ósemka.",
+    "Skoro to już mamy wyjaśnione, przechodzimy do omawiania grup. Czytanie ich w dużej mierze opiera się na tym, co już wiemy - chodzi teraz jedynie o to, żeby umieć rozpoznać te wartości połączone.",
+    "Kombinacji jest bardzo wiele, więc nie będziemy ich wszystkich wypisywać, podamy jedynie parę przykładów:",
+    "<b>ósemka i dwie szesnastki</b>, które łącznie trwają tyle, co jedna ćwierćnuta,",
+    '<img src="N8.png" alt="nuty">',
+    "<b>ósemka z kropką i szesnastka</b>, co trwa dokładnie tyle samo,",
+    '<img src="N9.png" alt="nuty">',
+    "<b>ćwierćnuta z kropką i ósemka</b>, które trwają z kolei tyle, co półnuta.",
+    '<img src="N10.png" alt="nuty">',
+    "Istnieją jeszcze rytmy nieregularne, polegające na tym, że daną wartość zamiast na dwa, cztery i tak dalej, dzielimy na trzy, pięć...",
+    "Ważne jest jednak, aby przy rytmach nieregularnych pamiętać o zapisaniu przy belce grupy cyfry oznaczającej, ile nut znajduje się w tej grupie.",
+    "<u>Jeśli dane wartości nie posiadają wiązania - cyfrę umieszczamy w klamrze nad nutami.</u>",
+    '<img src="N11.png" alt="nuty">',
+    "<strong><H1>PAUZY</H1></strong>",
+    "Pauzy to bardzo prosty temat - zapis, gdy zamiast jakiejś nuty zwyczajnie ma być cisza.",
+    "Pauzy również jednak mają swoje wartości, które odpowiadają tym nutom, o których była mowa w lekcji o rytmie.",
+    '<img src="N12.png" alt="nuty">',
+    "<strong><H1>METRUM</H1></strong>",
+    "Skoro omówiliśmy już wartości rytmiczne, teraz przejdziemy do tego, w jaki sposób ich używać.",
+    "Nuty są zapisywane w taktach, które mają określone metrum.",
+    "Metrum jest zaznaczane na początku utworu, a czasem - jeśli następuje zmiana - również w trakcie kompozycji. Określa ono, ile i jakich wartości rytmicznych mieści się w jednym takcie.",
+    '<img src="N13.png" alt="nuty">',
+    "<b>Metrum zapisuje się trochę jak ułamek, tylko bez kreski ułamkowej. Dolna liczba mówi o tym, w jakich wartościach liczy się ten takt, a górna - ile ich ma być.</b>",
+    "Przykładowo, jeśli na dole jest 4, a u góry 3, to znaczy, że w takcie mogą być trzy ćwierćnuty lub ich równowartości. (np. sześć ósemek).",
+     '<img src="N14.png" alt="nuty">',
+
+   
+
+
+
+
+  ]
+    },
+   {  id: "Trójdziwięki",
+  title: "Trójdziwięki",
+  heading: "Trójdziwięki",
+  subtitle: "Podstawa akordu",
+  body: [
+    "Trójdźwięki - to najprostsze akordy, które składają się z trzech dźwięków nazywanych: <b>pryma</b> (od tego dźwięku pochodzi nazwa całego akordu), <b>tercja</b> i <b>kwinta.</b>",
+    "<i><b>Trójdźwięk budujemy z interwałów tercji, które różnią się między sobą ich rozmieszczeniem:</i></b>",
+    "<ul><li>Od dołu tercja wielka i tercja mała daje trójdźwięk durowy,</li>",
+    '<img src="T1.png">',
+    "<li>Tercja mała i tercja wielka daje trójdźwięk molowy,</li>",
+    '<img src="T2.png">',
+    "<li> Dwie tercje małe dają trójdźwięk zmniejszony,</li>",
+    '<img src="T3.png">',
+    "<li> Dwie tercje wielkie dają trójdźwięk zwiększony.,</li>",
+    '<img src="T4.png">',
+    "</ul>",
+    "<br>",
+    "<h2><strong>Funkcyjne oznaczenia trójdźwięków</strong></h2>",
+    "<strong>T</strong>  - trójdźwięk zbudowany na pierwszym stopniu gamy <b>(Tonika)</b>",
+    "<strong>S</strong>  - trójdźwięk subdominantowy zbudowany na czwartym stopniu gamy <b>(Subdominanta)</b>",
+    "<strong>D</strong>  - trójdźwięk dominantowy zbudowany na piątym stopniu gamy <b>(Dominanta)</b>",
+    "<br>",
+    "Te trzy trójdźwięki - <b>toniczny, subdominantowy i dominantowy</b> - tworzą triadę harmoniczną, czyli trzy podstawowe akordy w tonacji.",
+    '<img src="T5.png">',
+    "Trójdźwięki posiadają dwa rodzaje przewrotów:",
+    "<strong>W pierwszym przewrocie (sekstowy)</strong> - przenosimy najniższy składnik o oktawę wzwyż, albo dwa najwyższe składniki o oktawę w dół. Odległość od najwyższego do najniższego składnika w takim przekształconym akordzie to seksta",
+    '<img src="T6.png">',
+    "<strong>Drugi przewrót (kwartsekstowy)</strong> - przenosimy dwa najniższe składniki o oktawę w górę lub najwyższy o oktawę w dół. Odległość od najniższego do dwóch wyższych składników wynosi kwartę i sekstę.",
+    '<img src="T7.png">',
+    "Przewroty oznaczamy cyfrą najniższego składnika trójdźwięki (3 lub 5) pod nazwą jego funkcji (T, S, D).",
+        ]
+      },
+    {  id: "Dominanta Septymowa",
+  title: "Dominanta Septymowa",
+  heading: "Czterodźwięk septymowy",
+  subtitle: "trójdźwięk z dodanym składnikiem septymy u góry",
+  body: [ 
+    "Skoro była już mowa o trójdźwiękach, i wiemy też, co to triada harmoniczna - skupimy się teraz na dominancie. Pójdziemy jeszcze o krok dalej: w tej lekcji wyjaśnimy, <b>czym jest dominanta septymowa o skrótowym zapisie D⁷.</b>",
+    "<strong>Składa się ona z czterech dźwięków i najłatwiej jest wytłumaczyć ją jako trójdźwięk na piątym stopniu gamy, do którego dodajemy jeszcze jedną tercję małą, stanowiącą składnik septymy dla istniejącego już akordu.</strong>",
+    '<img src="D1.png">',
+    "Ta septyma tworzy bardzo charakterystyczny dysonans, który dąży do rozwiązania na tonikę. Istnieją jednak przyjęte zasady dotyczące <b>rozwiązywania D⁷</b>, uwzględniające w pierwszej kolejności rozwiązanie właśnie tego trytonu.",
+    "Jak to wygląda krok po kroku? Po pierwsze trzeba rozpoznać wszystkie składniki współbrzmienia. Następnie musimy wiedzieć, na jaki akord chcemy je rozwiązać - np. G rozwiązuje się na C (ponieważ akord G to V stopień w gamie C-dur, czyli jej dominanta, tak więc akord C będzie w tym przypadku toniką).",
+    "Skoro to już zostało wyjaśnione, to w rozwiązaniu po kolei: tercja D⁷ idzie do góry na najbliższy składnik T, kwinta i septyma kierują się w dół (septyma idzie na tercję T, a więc decyduje o trybie rozwiązania - ponieważ to od tercji zależy, czy akord jest durowy czy molowy), a pryma albo zostaje albo skacze.",
+    "Przykładowe rozwiązanie w tonacji C-dur (D⁷ składa się z dźwięków: g, h, d, f, natomiast T z c, e, g, gdzie dwoimy prymę, czyli c)",
+    '<img src="D2.png">',
+    "Taki rodzaj rozwiązania nazywamy <b>ścisłym</b>, jednak istnieje też rzadziej używane rozwiązanie <b>swobodne</b>, w którym septyma zamiast w dół, idzie do góry. Nie jest jednak gwarantowane, w przeciwieństwie do sposobu ścisłego, że we wszystkich sytuacjach będzie ono poprawne i zgodne ze wszystkimi innymi zasadami, jakie istnieją w harmonii.",
+    '<img src="D3.png">',
+    "<br>",
+    "Akord D⁷, tak samo jak wszystkie inne akordy, ma swoje przewroty, które tworzy się na tej samej zasadzie co przewroty trójdźwięków: przekładając stopniowo kolejne składniki o oktawę wyżej.",
+    "Kolejno są to: ",
+    "<strong>pierwszy przewrót = kwintsekstowy,</strong>",
+    '<img src="D4.png">',
+    "<strong>drugi przewrót = terckwartowy,</strong>",
+    '<img src="D5.png">',
+    "<strong>trzeci przewrót = sekundowy.</strong>",
+    '<img src="D6.png">',
+    "Zaznacza się je podobnie jak trójdźwięki, pod symbolem D⁷ cyferką tego składnika, który znajduje się w danym przewrocie na dole (we wczesnej fazie nauki małych dzieci, przy pisowni akordów bez przewrotów czasem się z tej jedynki rezygnuje).",
+        ]
+        },
+      {  id: "Koło kwintowe",
+  title: "Koło kwintowe",
+  heading: "Koło kwintowe",
+  subtitle: "Koło porządkujące tonacje na podstawie znaków przykluczowych",
+  body: [ 
+    "Koło kwintowe to w skrócie wszystkie tonacje (durowe i molowe) ułożone w określony sposób. W jaki dokładnie?",
+    '<img src="Kolo.png" width="500" border-radius="20px">',
+    "Zaczynamy od tonacji C-dur, która nie ma żadnych znaków. Następnie idąc w prawo, kolejna tonacja posiada przy kluczu jeden krzyżyk - jest to G-dur. Poruszając się po kolei w prawo, każda następna tonacja ma o jeden krzyżyk więcej, aż do Fis-dur, która ma ich sześć. Są to po kolei: G, D, A, E, H, Fis.",
+    "Natomiast jeśli pójdziemy w lewo od C, mamy gamy bemolowe. Są ułożone na takiej samej zasadzie, to znaczy każda następna tonacja ma o jeden bemol więcej. Po kolei więc mamy: Do, B, Es, As, Des, oraz Bez, która ma sześć bemoli.",
+    "Na dole koła tonacje się spotykają. Jak wyżej jest wspomniane, tonacje są na kole do sześciu znaków. Jest tak dlatego, że Fis oraz Ges (6 krzyżyków i 6 bemoli) brzmią dokładnie tak samo - można powiedzieć że enharmonicznie to ta sama tonacja.",
+    "Jeśli chodzi o tonacje molowe, sprawa jest prosta. Wiemy, że tonacje molowe mają taką samą ilość znaków,jak ich durowe paralele. Wystarczy więc policzyć, od jakiej gamy surowej dana gama losowa jest paralelą (dla przypomnienia, gama molowa jest o 3> od jej durowej paraleli).",
+    "W skrócie: jeśli mamy gamę molową, liczymy 3> w górę i już wiemy od jakiej durowej ta skala pochodzi. Jak już wiemy od jakiej durowej, to wiemy też, gdzie leży na kole kwiatowym, a tym samym ile i jakie ma znaki.",
+    "No właśnie, bo w sumie po co nam te całe koło kwintowe?",
+    "Wiemy że to jakaś tam kolejność tonacji, ale czy w ogóle muzykom się to przydaje? Nawet nie wiecie, jak bardzo.",
+    "Kiedy mamy jakąś tonację, nie wszyscy od razu są w stanie powiedzieć, jakie ona ma znaki i ile ich ma. Albo na odwrót, kiedy dostajemy utwór, i widzimy że ma jakieś znaki, i musimy dowiedzieć się, jaka to tonacja. W takich sytuacjach używamy właśnie koła kwintowego.",
+    "<b>Ale czy jest jakiś sposób, żeby to spamiętać bez żmudnego kucia na blachę i bezsensownego zapamiętywania? Oczywiście, i to całkiem prosty.</b>",
+    "<strong>Obliczanie tonacji krzyżykowych</strong>",
+    "Potrzebujemy do tego klawiatury fortepianu, albo przynajmniej pamiętać jak ona wygląda. No bo tak, wiemy że zawsze zaczynamy od gamy C-dur, bo nie ma ona żadnych znaków. Jeśli chcemy policzyć gamy krzyżykowe, to idziemy w górę. O 5 wyżej od C jest G - czyli tonacja z jednym krzyżykiem. Jak już mamy tą kwintę, to każdą następną tonację otrzymamy przez przesuwanie jej o cały ton w górę, najpierw ,,prawy palec”, później lewy.",
+    "…Czyli jak? Jeśli mamy lewy palec na C, a prawy na G, to następną tonację znajdziemy przesuwając lewy palec o 2 w górę - na D. Wtedy wiemy, że tonacja z dwoma krzyżykami to D-dur. Prawy palec mieliśmy na G, więc żeby teraz dostać tonację z trzema krzyżykami, też musimy przesunąć go o 2 w górę, to znaczy na A. Tym sposobem otrzymujemy A-dur jako tonację z trzema krzyżykami. Chcąc dostać tonację z czterema krzyżykami, znów przesuwamy lewy palec o 2 w górę, z D na E, a jeśli chcemy tonację z pięcioma krzyżykami, prawy palec przesuwamy o 2 w górę z A na H. I w końcu, przy tonacji z sześcioma krzyżykami przesuwamy lewy palec z E na Fis.",
+    "<strong>Obliczanie tonacji bemolowych</strong>",
+    "Przy tonacjach bemolowych działa to podobnie, tyle że w dół. Zaczynamy od C, i 5 w dół mamy F, czyli gamę z jednym bemolem. Prawy palec przesuwamy o 2 w dół, i otrzymujemy wtedy B, gamę z dwoma bemolami. Następnie lewy palec przesuwamy z F na Es, i już wiemy, że gama Es-dur ma trzy bemole. Cztery bemole w takim razie będzie mieć gama o 2 niżej od B, czyli As, a pięć bemoli dostaniemy kiedy lewy palec przesuniemy z Es na Des. No i oczywiście gama z sześcioma bemolami znajduje się o 2 niżej od As, czyli jest to nasza Ges, która enharmonicznie odpowiada gamie Fis.",
+    "<strong>Znajdowanie znaków gam molowych</strong>",
+    "Dla przykładu jak to wygląda w gamach molowych: chcemy się dowiedzieć, ile znaków ma f-moll. Liczymy od niej 3> w górę, i wiemy że jej surowa paralela to As. No i liczymy ile znaków ma As-dur (cztery bemole), i wiemy, że takie same znaki będzie mieć f-moll.",
+    
+        ]
+         },
+       {  id: "Skale Modalne",
+  title: "Skale Modalne",
+  heading: "Skale Modalne",
+  subtitle: "Alternatywne systemu tonalne",
+  body: [ 
+    "W muzyce obecnie w większości korzystamy z tak zwanego systemu <i>dur-moll</i>, tonalnego. Jest on oparty na kole kwintowym.",
+    "Jednak system ten powstał dopiero około I połowy XVIII wieku, a popularność zyskał jeszcze później.",
+    "Wcześniej posługiwano się między innymi systemem skal nazywanych modalnymi, czy inaczej średniowiecznymi lub kościelnymi.",
+    "<small><i>(Ciekawostka: na nich oparty jest cały Chorał Gregoriański)</i></small>",
+    "Były to 4 skale główne oraz 4 poboczne, jednak my skupimy się na głównych, które są spośród nich najbardziej ,,zachowane”",
+    "<ol><strong>Główne skale modalne:</strong> <b><li>Dorycka</li><li>Frygijska</li><li>Lidyjska</li><li>Miksolidyjska</li></b></ol>", 
+    "Każda z nich zaczyna się od innego dźwięku. Układają się po kolei <b>od d do g</b>. Od danego dźwięku oryginalnie zaczynająca się skala to 7 następnych „białych klawiszy”, więc półtony znajdują się w nich w różnych miejscach. W związku z tym, że każda skala modalna ma swój ustalony dźwięk, od jakiego się zaczyna, nazywano je także ,,modusami”  plus nazwą solmizacyjną dźwięku, od którego się zaczynały.",
+    "<Strong>Skala Dorycka</strong>",
+    "Pierwsza jest skala dorycka, rzadziej nazywana modusem re. Jej nazwa przeszła także na charakterystyczny interwał, jaki posiada - seksty doryckiej (6), znajdującej się pomiędzy I a VI jej stopniem. Jak wskazuje na to jej druga nazwa, zaczyna się od „re” czyli d.Z tego wynika, że półtony znajdują się w niej między II a III oraz VI a VII dźwiękiem",
+    '<img src="S1.png">',
+    "<Strong>Skala Frygisjka</strong>",
+    "Druga skala to skala frygijska - inaczej modus mi. Zaczyna się od e, a jej charakterystycznym interwałem jest sekunda frygijska (2>), która jest bardzo rozpoznawalna przez to, że znajduje się na samym początku, pomiędzy I a II stopniem. Żadna z tych skal oprócz niej nie zaczyna się od sekundy małej. Jej drugi półton jest między V a VI stopniem.",
+    '<img src="S2.png"">',
+    "<Strong>Skala Lidyjska</strong>",
+    "Trzecia skala to skala lidyjska - modus fa. Jej pierwszym dźwiękiem jest f, półtony znajdują się między IV a V oraz VII i VIII stopniem. Charakterystyczny interwał tej skali to kwarta lidyjska (4<) pomiędzy I a IV jej stopniem.",
+    '<img src="S3.png">',
+    "<Strong>Skala Miksolidyjska</strong>",
+    "Ostatnia z podstawowych skal modalnych to skala miksolidyjska - modus sol. Zaczyna siẹ od g, a jej charakterystycznym interwałem jest septyma miksolidyjska (7) pomiędzy I a VII stopniem. Półtony znajdują się pomiędzy IlI i IV oraz VIi VII stopniami.",
+    '<img src="S4.png">',
+        ]
+        },
+        ]
+      }
+    ]
+    
+  },
+
+ 
+
+  aud: {
+    label: "Audycje Muzyczne",
+    lessons: [
+      {
+       
+        sublessons: [
+          {
+            id: "Rodzaje Muzyki",
+            title: "Rodzaje Muzyki",
+            heading: "Rodzaje Muzyki",
+            subtitle: "Rodzaje Muzyki",
+            body: [
+              "Słowo <i>muzyka</i> jest niesamowicie szerokim określeniem. Obejmuje tyle zagadnień, że nad studiowniem choć części z nich ludzie spędzają nieraz wręcz całe życie. Jest to sztuka z jednej strony ujmowana w jakieś ramy, określana przyjętymi zasadami, a jednocześnie wychodząca daleko poza nie.",
+              "My skupiamy się tutaj na teoretycznej jej części, w praktyce jednak istnieje ona właśnie po to, by móc wyrazić swoje myśli bez używania słów, przekazywać emocje bez żadnych ograniczeń, a można to robić na tak wiele różnych sposobów. Każdy może odnaleźć się w czymś trochę (lub bardzo) innym.",
+              "Jak więc - i tu znów wracamy do teorii - możemy podzielić muzykę? Jakie możemy wyróżnić jej rodzaje i czym one się charakteryzują?",
+              "<b>Ze względu na charakter, może być ona:</b>",
+              "<ul><li><i>Poważna</i> <p>często nazywana muzyką klasyczną</p></li><li><i>Rozrywkowa</i><p>taka, jaką możemy usłyszeć chociażby w radiu</p></li></ul>",
+              "<b>Ze względu na aparat wykonawczy</b> czyli kto ją wykonuje, może być:",
+              "<ul><li><i>Wokalna:</i><p>solowa, zespołowa (inaczej kameralna), chóralna</p></li><li><i>Instrumentalna:</i><p>solowa, zespołowa (kameralna), orkiestrowa</p></li><li><i>Wokalno-instrumentalna</i></li></ul>"
+            ]
+          },
+          {
+            id: "Rodzaje Melodii",
+            title: "Rodzaje Melodii",
+            heading: "Rodzaje Melodii",
+            subtitle: "Rodzaje Melodii",
+            body: [
+              "Melodia (melodyka) jest elementem dzieła muzycznego, który najczęściej wymienia się jako pierwszy. Niby każdy wie, co to jest... ale nikt w zasadzie nie potrafi do końca ubrać tego w słowa, prawda? No więc, co to jest ta melodia? Otóż jest to szereg dźwięków o różnych wysokościach, zorganizowanych rytmicznie, które przedstawiają jakąś jedną całość.",
+              "<strong>Wyróżniamy melodykę:</strong>",
+              "<ul><li><i>Wokalną</i></li><p>która nie może być zbyt ruchliwa a także ma ograniczoną skalę ze względu na możliwości wykonawcze wokalisty.</p><li><i>Instrumentalną</i></li><p>która nie ma takich ograniczeń.</p></ul>",
+              "<strong>Podstawowe rodzaje melodii to</strong>",
+              "<ul><li><i>Kantylenowa</i></li><p>Melodyka kantylenowa jest śpiewna, spokojna, najczęściej bez dużych skoków. Charakteryzuje ją wolne tempo i długie wartości rytmiczne, a także legatowe połączenia dźwięków.</p><li><i>Figuracyjna</i><p>Melodyka figuracyjna jest przeciwieństwem kantylenowej - ruchliwa, szybka, często z dużymi skokami ale też przebiegami gamowymi bądź pasażowymi</p></li><li><i>Ornamentalna</i></li><p>Melodyka ornamentalna cechuje się dużą ilością ozdobników</p><li><i>Deklamacyjna</i></li><p></p></ul>",
+              "<strong>Ze względu na jej treść:</strong>",
+              "<ul><li><i>Religijna</i></li><li><i>Świecka</i></li></ul>",
+            ]
+          },
+          {
+            id: "Rodzaje Rytmu",
+            title: "Rodzaje Rytmu",
+            heading: "Rodzaje Rytmu",
+            subtitle: "Rodzaje Rytmu",
+            body: [
+              "Rytm jest jednym z elementów dzieła muzycznego, wymienianym zaraz obok melodii. My jednak pokusiły byśmy się o stwierdzenie, że jest on wręcz od niej ważniejszy - ponieważ znajdziecie utwór bez melodii, nie ma jednak utworu bez rytmu (nawet jeśli jest on nieokreślony).",
+              "Co to tak w zasadzie jest? Tworzą go wszystkie dźwięki: te krótkie, te długie, akcentowane i nieakcentowane, a także te, których nie ma - czyli pauzy.",
+              "<b>Rytm możemy podzielić na kilka nazwijmy to 'gałęzi':</b>",
+              "<ol><li>Swobodny</li><li>Ustalony</li></ol>",
+              "<ul><li>Zmienny</li><li>Okresowy - taneczny (z charakterystycznymi dla danych tanców grupami rytmicznymi), motoryczny (drobne wartości rytmiczne, szerokie tempo), marszowy, miarowy (jednostajny)</li></ul>",
+              "Tak samo jak przy melodii, prawdopodobnie spotkacie się z utworami, które ciężko będzie przypasować do którejś z tych kategorii, jako że muzyka jest sztuką w praktyce często pozbawioną ograniczeń. Mimo to jedna warto znać przyjęte określenia, jeśli chce się jej uczyć bardziej profesjonalnie.",
+              
+            ]
+          },
+          {
+            id: "Rodzaje Harmonii",
+            title: "Rodzaje Harmonii",
+            heading: "Rodzaje Harmonii",
+            subtitle: "Rodzaje Harmonii",
+            body: [
+              "<b>Harmonia</b> to kolejny niezwykle istotny element dzieła muzycznego. Jest odpowiedzialny za współbrzmienie dźwięków w utworze. Jest związany z budową akordów i sposobem ich łączenia.",
+              "Jakie wyróżniamy rodzaje harmonii:",
+              "<ul><li>Modalna (inaczej kościelna)</li><li>Funkcyjna</li><li>Sonorystyczna</li></ul>",
+              "<b>Harmonika modalna</b> jest, można powiedzieć, nieco przestarzała. Używano jej od IX do XVI wieku, a opierała się na skalach modalnych (inaczej kościelnych), którym poświęcona jest cała osobna lekcja, więc nie będziemy się tutaj w to zagłębiać.",
+              "<b>Harmonika funkcyjna</b> jest już trochę nowocześniejsza od modalnej, ponieważ występowała od XVII do XX wieku. Opierała się na skalach durowej i molowej, a więc tych, których uczymy się w szkole i używamy do dziś. Najważniejszą funkcję w takich gamach odgrywają: <b>tonika (T), subdominanta (S), oraz dominanta (D) - o triadzie harmonicznej</b>, czyli tych trzech funkcjach w gamie, także jest więcej mowa w innej naszej lekcji. Od właśnie tych funkcji, harmonia ta jest nazywana funkcyjną.",
+              "<b>Harmonia sonorystyczna</b> jest najbradziej aktualna z tych wszstkich rodzajów, ponieważ używają jej współcześni kompozytorzy. Opiera się na skali chromatycznej, nie ma ona żadnego ośrodka tonalnego (czyli 'ważniejszego' akordu, toniki) a także dominują w niej <b>dysonanse i klastry.</b>",
+              "<small>*dysonans to współbrzmienie brzmiące ostro i nieprzyjemnie, a klaster to duża ilość dźwięków obok siebie grana jednocześnie, tworząca głośne i nieprzyjemne współbrzmienie (jakby ktoś np. usiadł na klawiaturze[do czego oczywiście nie zachęcamy])</small>"
+
+            ]
+          },
+           {
+            id: "Dynamika",
+            title: "Dynamika",
+            heading: "Dynamika",
+            subtitle: "Dynamika",
+            body: [
+              "<B>Dynamika</b> to element dzieła muzycznego związany z natężeniem dźwięku, to znaczy z jego głośnością. Do jej oznaczania, tak jak wielu innych rzeczy, używamy określeń z języka włoskiego",
+                "<strong>Skala głośności:</strong>",
+                `<table style="
+        width:100%;
+        border-collapse:collapse;
+        font-size:15px;
+        margin:28px 0 10px;
+        border-radius:16px;
+        overflow:hidden;
+        box-shadow:0 4px 20px rgba(120,90,160,0.13);
+      ">
+      <thead>
+        <tr style="background:linear-gradient(90deg,#e7a9cf,#b79ae8 55%,#8fc2ed);color:#fff;">
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Termin</th>
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Symbol</th>
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Znaczenie</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${[
+          ["pianississimo",  "ppp", "tak cicho, jak to możliwe"],
+          ["pianissimo",  "pp", "bardzo cicho"],
+          ["piano",  "p", "cicho"],
+          ["mezzo piano", "mp", "umiarkowanie cicho"],
+          ["mezzo forte", "mf", "umiarkowanie głośno"],
+          ["forte", "f", "głośno"],
+          ["fortissimo", "ff", "bardzo głośno"],
+          ["fortississimo",  "fff", "tak głośno, jak to możliwe"],
+
+        ].map(([Nazwa, skrot, Znaczenie], i) => `
+          <tr style="background:${i % 2 === 0 ? 'rgba(255,255,255,0.6)' : 'rgba(217,199,244,0.2)'};">
+            <td style="padding:11px 16px;font-weight:600;color:#3a2f4d;">${Nazwa}</td>
+            <td style="padding:11px 16px;font-family:monospace;font-size:14px;color:#a989d9;font-weight:700;">${skrot}</td>
+            <td style="padding:11px 16px;text-align:center;">${Znaczenie}</td>
+           
+          </tr>
+        `).join('')}
+      </tbody>
+      </table>`,
+      "<br>",
+      "<strong>Stopniowa zmiana dynamiki:</strong>",
+      `<table style="
+        width:100%;
+        border-collapse:collapse;
+        font-size:15px;
+        margin:28px 0 10px;
+        border-radius:16px;
+        overflow:hidden;
+        box-shadow:0 4px 20px rgba(120,90,160,0.13);
+      ">
+      <thead>
+        <tr style="background:linear-gradient(90deg,#e7a9cf,#b79ae8 55%,#8fc2ed);color:#fff;">
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Interwał</th>
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Skrót</th>
+          <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Liczba półtonów</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        ${[ ["crescendo",  "cresc lub <", "coraz głośniej"], 
+            ["diminuendo",  "dim lub >", "coraz ciszej"], 
+            ["fortepiano",  "fp", "głośno, a potem nagle cicho"], 
+            ["sforzando, forzando, szforzato",  "sfz, sf lub fz", "nagle zaakcentować"], 
+            ["rinforzando",  "rfz lub rf", "wzmocnić"],
+
+        ].map(([Nazwa, skrot, Znaczenie], i) => `
+          <tr style="background:${i % 2 === 0 ? 'rgba(255,255,255,0.6)' : 'rgba(217,199,244,0.2)'};">
+            <td style="padding:11px 16px;font-weight:600;color:#3a2f4d;">${Nazwa}</td>
+            <td style="padding:11px 16px;font-family:monospace;font-size:14px;color:#a989d9;font-weight:700;">${skrot}</td>
+            <td style="padding:11px 16px;text-align:center;">${Znaczenie}</td>
+            
+         
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`,
+              
+              ]
+           },
+           {  id: "Agogika",
+            title: "Agogika",
+            heading: "Agogika",
+            subtitle: "Agogika",
+            body: [
+              "Agogika to element dzieła muzycznego, który zajmuje się wszystkim, co dotyczy tempa. Kompozytor oznacza tempo na początku utworu, używając do tego określeń włoskich, który, jak wiadomo, jest głównym językiem używanym w muzyce. Rzadziej zdarza się używanie określeń w innym języku, nie jest to jednak całkowicie niespotykane.",
+              "Rozróżniamy trzy rodzaje temp: wolne, umiarkowane i szybkie. Wymienimy do każdego z nich kilka najczęściej używanych oznaczeń.",
+              `<table style="
+                  width:100%;
+                  border-collapse:collapse;
+                  font-size:15px;
+                  margin:28px 0 10px;
+                  border-radius:16px;
+                  overflow:hidden;
+                  box-shadow:0 4px 20px rgba(120,90,160,0.13);
+                ">
+                <thead>
+                  <tr style="background:linear-gradient(90deg,#e7a9cf,#b79ae8 55%,#8fc2ed);color:#fff;">
+                    <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Tempa wolne</th>
+                    <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Znaczenie</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${[,
+                    ["Largo",  "szeroko, bardzo powoli"],
+                    ["Lento",  "powoli"],
+                    ["Adagio",  "wolno"],
+                    ["Grave",  "ciężko"]
+
+        ].map(([tempo, znaczenie], i) => `
+          <tr style="background:${i % 2 === 0 ? 'rgba(255,255,255,0.6)' : 'rgba(217,199,244,0.2)'};">
+            <td style="padding:11px 16px;font-weight:600;color:#3a2f4d;">${tempo}</td>
+            <td style="padding:11px 16px;font-family:monospace;font-size:14px;color:#a989d9;font-weight:700;">${znaczenie}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`,
+              `<table style="
+                  width:100%;
+                  border-collapse:collapse;
+                  font-size:15px;
+                  margin:28px 0 10px;
+                  border-radius:16px;
+                  overflow:hidden;
+                  box-shadow:0 4px 20px rgba(120,90,160,0.13);
+                ">
+                <thead>
+                  <tr style="background:linear-gradient(90deg,#e7a9cf,#b79ae8 55%,#8fc2ed);color:#fff;">
+                    <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Tempa umiarkowane</th>
+                    <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Znaczenie</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${[,
+                    ["Andante",  "w tempie spokojnego kroku"],
+                    ["Moderato",  "umiarkowanie"],
+                    ["Allegretto",  "dość żywo"],
+
+        ].map(([tempo, znaczenie], i) => `
+          <tr style="background:${i % 2 === 0 ? 'rgba(255,255,255,0.6)' : 'rgba(217,199,244,0.2)'};">
+            <td style="padding:11px 16px;font-weight:600;color:#3a2f4d;">${tempo}</td>
+            <td style="padding:11px 16px;font-family:monospace;font-size:14px;color:#a989d9;font-weight:700;">${znaczenie}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`,
+    `<table style="
+                  width:100%;
+                  border-collapse:collapse;
+                  font-size:15px;
+                  margin:28px 0 10px;
+                  border-radius:16px;
+                  overflow:hidden;
+                  box-shadow:0 4px 20px rgba(120,90,160,0.13);
+                ">
+                <thead>
+                  <tr style="background:linear-gradient(90deg,#e7a9cf,#b79ae8 55%,#8fc2ed);color:#fff;">
+                    <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Tempa Szybkie</th>
+                    <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Znaczenie</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${[,
+                    ["Allegro",  "wesoło, ruchliwie"],
+                    ["Vivo",  "żywo"],
+                    ["Vivace",  "prędko"],
+                    ["Presto",  "szybko"],
+
+        ].map(([tempo, znaczenie], i) => `
+          <tr style="background:${i % 2 === 0 ? 'rgba(255,255,255,0.6)' : 'rgba(217,199,244,0.2)'};">
+            <td style="padding:11px 16px;font-weight:600;color:#3a2f4d;">${tempo}</td>
+            <td style="padding:11px 16px;font-family:monospace;font-size:14px;color:#a989d9;font-weight:700;">${znaczenie}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`,
+  "Tempo zasadnicze czasem może ulec chwilowej zmianie. Do oznaczania takich rzeczy jak zwolnienia lub przyspieszenia używamy następujących określeń:",
+     `<table style="
+                  width:100%;
+                  border-collapse:collapse;
+                  font-size:15px;
+                  margin:28px 0 10px;
+                  border-radius:16px;
+                  overflow:hidden;
+                  box-shadow:0 4px 20px rgba(120,90,160,0.13);
+                ">
+                <thead>
+                  <tr style="background:linear-gradient(90deg,#e7a9cf,#b79ae8 55%,#8fc2ed);color:#fff;">
+                    <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Termin</th>
+                    <th style="padding:13px 16px;text-align:left;font-weight:700;letter-spacing:.04em;">Znaczenie</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${[,
+                    ["Accelerando (accel.)",  "przyspieszając"],
+                    ["Animando",  "ożywiając"],
+                    ["Poco a poco string.",  "stopniowo przyspieszając"],
+                    ["Ritardando (ritard.)",  "zwalniając"],
+                    ["Ritenuto (rit.)",  "opóźniając, powstrzymując"],
+
+        ].map(([Stopień, Nazwa], i) => `
+          <tr style="background:${i % 2 === 0 ? 'rgba(255,255,255,0.6)' : 'rgba(217,199,244,0.2)'};">
+            <td style="padding:11px 16px;font-weight:600;color:#3a2f4d;">${Stopień}</td>
+            <td style="padding:11px 16px;font-family:monospace;font-size:14px;color:#a989d9;font-weight:700;">${Nazwa}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`,
+    "<br>",
+    "<strong>Oznaczenie metronomiczne</strong>",
+    "Jeśli kompozytor chce dokładnie określić tempo danego utworu, wykorzystuje w tym celu oznaczenie metrorytmiczne, które mówi o tym, ile jakichś wartości mieści się w minucie (używamy tego też np. do ustawiania tempa w metronomie)",
+    "<small>poniżej przykład metronomu mechanicznego marki Lekato</small>",
+    '<img src="metronom.png" alt="metronom" width="200" height="200">',
+    "Ciekawym zjawiskiem jest <b>rubato</b> (często wykorzystywane np. przez Fryderyka Chopina). Włoskie słowo rubare oznacza 'kraść'. Tak więc rubato będzie przedłużaniem jednej nuty na rzecz innej, lub na odwrót - skracanie jakiegoś dźwięku, aby przedłużyć inny, przy jednoczesnym zachowaniu płynności tempa i ilości wartości w takcie.",
+    
+
+            ]
+           }
+        ]
+      }
+    ]
+  },
+ 
+
+  ex: {
+    label: "Ćwiczenia",
+    lessons: [
+      {
+        id: "wszystkie",
+        sublessons: [
+  {
+  id: "rozpoznawanie-interwalow",
+  title: "Słuchowe rozpoznawanie interwałów",
+  heading: "Słuchowe rozpoznawanie interwałów",
+  subtitle: "Do oktawy, w górę",
+  body: [
+    `<div style="display:flex;flex-direction:column;gap:18px;">
+
+      <!-- LICZNIK -->
+      <div style="
+        display:inline-flex;align-items:center;gap:20px;
+        padding:10px 22px;border-radius:999px;
+        background:rgba(255,255,255,0.65);
+        border:1px solid rgba(183,154,232,0.3);
+        box-shadow:0 4px 16px rgba(120,90,160,0.1);
+        font-size:16px;font-weight:700;width:fit-content;
+      ">
+        <span>Dobrze: <span id="correctCount" style="color:#3f9e6b;">0</span></span>
+        <span>Źle: <span id="wrongCount" style="color:#d9608e;">0</span></span>
+      </div>
+
+      <!-- PRZYCISKI GŁÓWNE -->
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button onclick="randomInterval()" style="
+          padding:12px 26px;border:none;border-radius:14px;
+          font-size:15px;font-weight:700;color:#fff;cursor:pointer;
+          background:linear-gradient(120deg,#e7a9cf,#b79ae8 60%,#8fc2ed);
+          box-shadow:0 4px 14px rgba(120,90,160,0.18);
+          transition:transform .25s ease,box-shadow .25s ease;
+        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+          ▶ Losuj interwał
+        </button>
+        <button onclick="repeatInterval()" style="
+          padding:12px 26px;border:none;border-radius:14px;
+          font-size:15px;font-weight:700;color:#6c5f82;cursor:pointer;
+          background:rgba(255,255,255,0.7);
+          border:1px solid rgba(183,154,232,0.35);
+          box-shadow:0 4px 14px rgba(120,90,160,0.08);
+          transition:transform .25s ease;
+        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+          ↺ Zagraj jeszcze raz
+        </button>
+      </div>
+
+      <!-- PRZYCISKI WYBORU INTERWAŁU -->
+      <div style="display:flex;flex-wrap:wrap;gap:10px;">
+        ${[
+          ['sekundamala',    'Sekunda Mała'],
+          ['sekundawielka',  'Sekunda Wielka'],
+          ['tercjamala',     'Tercja Mała'],
+          ['tercjawielka',   'Tercja Wielka'],
+          ['kwarta',         'Kwarta'],
+          ['tryton',         'Tryton'],
+          ['kwinta',         'Kwinta'],
+          ['sekstamala',     'Seksta Mała'],
+          ['sekstawielka',   'Seksta Wielka'],
+          ['septymamala',    'Septyma Mała'],
+          ['septymawielka',  'Septyma Wielka'],
+          ['oktawa',         'Oktawa'],
+        ].map(([val, label]) => `
+          <button onclick="checkAnswer('${val}')" style="
+            padding:10px 18px;border:none;border-radius:12px;
+            font-size:14px;font-weight:600;color:#3a2f4d;cursor:pointer;
+            background:rgba(255,255,255,0.6);
+            border:1px solid rgba(183,154,232,0.3);
+            box-shadow:0 2px 8px rgba(120,90,160,0.08);
+            transition:transform .2s ease,background .2s ease;
+          "
+          onmouseover="this.style.background='rgba(217,199,244,0.7)';this.style.transform='translateY(-2px)'"
+          onmouseout="this.style.background='rgba(255,255,255,0.6)';this.style.transform='translateY(0)'">
+            ${label}
+          </button>
+        `).join('')}
+      </div>
+
+      <!-- FEEDBACK -->
+      <div id="interval-feedback" style="
+        min-height:36px;font-size:17px;font-weight:700;
+        padding:10px 18px;border-radius:14px;
+        background:transparent;transition:all .3s ease;
+      "></div>
+
+      <!-- AUDIO (ukryty) -->
+      <audio id="audioPlayer" style="display:none;"></audio>
+
+    </div>`
+  ],
+  script: `
+    var correctAnswer = '';
+    var correctCount = 0;
+    var wrongCount = 0;
+
+    var intervals = {
+      0:  ['sekundamala',   'Asekundamala.mp3'],
+      1:  ['sekundawielka', 'Asekundawielka.mp3'],
+      2:  ['tercjamala',    'Atercjamala.mp3'],
+      3:  ['tercjawielka',  'Atercjawielka.mp3'],
+      4:  ['kwarta',        'Akwarta.mp3'],
+      5:  ['tryton',        'Atryton.mp3'],
+      6:  ['kwinta',        'Akwinta.mp3'],
+      7:  ['sekstamala',    'Asekstamala.mp3'],
+      8:  ['sekstawielka',  'Asekstawielka.mp3'],
+      9:  ['septymamala',   'Aseptymamala.mp3'],
+      10: ['septymawielka', 'Aseptymawielka.mp3'],
+      11: ['oktawa',        'Aoktawa.mp3'],
+    };
+
+    function randomInterval() {
+      var r = Math.floor(Math.random() * 12);
+      correctAnswer = intervals[r][0];
+      var audio = document.getElementById('audioPlayer');
+      audio.src = intervals[r][1];
+      audio.load();
+      audio.play().catch(e => console.error(e));
+      var fb = document.getElementById('interval-feedback');
+      fb.textContent = '';
+      fb.style.background = 'transparent';
+    }
+
+    function repeatInterval() {
+      document.getElementById('audioPlayer').play().catch(e => console.error(e));
+    }
+
+    function checkAnswer(answer) {
+      var fb = document.getElementById('interval-feedback');
+      if (answer === correctAnswer) {
+        correctCount++;
+        document.getElementById('correctCount').textContent = correctCount;
+        fb.textContent = '✓ Dobrze!';
+        fb.style.background = 'rgba(63,158,107,0.12)';
+        fb.style.color = '#2f8f5e';
+      } else {
+        wrongCount++;
+        document.getElementById('wrongCount').textContent = wrongCount;
+        fb.textContent = '✗ Źle — spróbuj ponownie lub wylosuj nowy interwał.';
+        fb.style.background = 'rgba(217,96,142,0.1)';
+        fb.style.color = '#c84e84';
+      }
+    }
+  `
+},
+{
+  id: "Rozpoznawanie kluczy",
+  title: "Rozpoznawanie kluczy",
+  heading: "Przyporządkowywanie nazw kluczy",
+  subtitle: "Wszystkie klucze G, F i C",
+  body: [
+    `<div style="display:flex;flex-direction:column;gap:18px;">
+
+      <!-- LICZNIK -->
+      <div style="
+        display:inline-flex;align-items:center;gap:20px;
+        padding:10px 22px;border-radius:999px;
+        background:rgba(255,255,255,0.65);
+        border:1px solid rgba(183,154,232,0.3);
+        box-shadow:0 4px 16px rgba(120,90,160,0.1);
+        font-size:16px;font-weight:700;width:fit-content;
+      ">
+        <span>Dobrze: <span id="imgCorrectCount" style="color:#3f9e6b;">0</span></span>
+        <span>Źle: <span id="imgWrongCount" style="color:#d9608e;">0</span></span>
+      </div>
+
+      <!-- PRZYCISK LOSUJ -->
+      <div>
+        <button onclick="randomImage()" style="
+          padding:12px 26px;border:none;border-radius:14px;
+          font-size:15px;font-weight:700;color:#fff;cursor:pointer;
+          background:linear-gradient(120deg,#e7a9cf,#b79ae8 60%,#8fc2ed);
+          box-shadow:0 4px 14px rgba(120,90,160,0.18);
+          transition:transform .25s ease;
+        "
+        onmouseover="this.style.transform='translateY(-2px)'"
+        onmouseout="this.style.transform='translateY(0)'">
+          ▶ Losuj
+        </button>
+      </div>
+
+      <!-- OBRAZEK -->
+      <div id="img-container" style="
+        width:220px;height:180px;
+        border-radius:18px;
+        background:rgba(255,255,255,0.5);
+        border:1px solid rgba(183,154,232,0.3);
+        box-shadow:0 4px 18px rgba(120,90,160,0.1);
+        display:flex;align-items:center;justify-content:center;
+        overflow:hidden;
+      ">
+        <span style="color:#b79ae8;font-size:14px;">Gotowy? (ദ്ദി ˙ᗜ˙ )✧ 𝄞 𝄢 𝄡</span>
+      </div>
+
+      <!-- PRZYCISKI ODPOWIEDZI -->
+      <div id="img-answer-buttons" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+
+      <!-- FEEDBACK -->
+      <div id="img-feedback" style="
+        min-height:36px;font-size:17px;font-weight:700;
+        padding:10px 18px;border-radius:14px;
+        background:transparent;transition:all .3s ease;
+      "></div>
+
+    </div>`
+  ],
+  script: `
+    /* ============================================================ */
+    var IMG_DATA = [
+      { src: 'K1.png', label: 'Dyszkoantowy' },
+      { src: 'K2.png', label: 'Wiolinowy' },
+      { src: 'K3.png', label: 'Barytonowy' },
+      { src: 'K4.png', label: 'Basowy' },
+      { src: 'K5.png', label: 'Subbasowy' },
+      { src: 'K6.png', label: 'Sopranowy' },
+      { src: 'K7.png', label: 'Mezzosopranowy' },
+      { src: 'K8.png', label: 'Altowy' },
+      { src: 'K9.png', label: 'Tenorowy' },
+    ];
+    /* ============================================================ */
+
+     var imgCorrect = 0;
+    var imgWrong   = 0;
+    var imgCurrentIndex = -1;
+
+    function shuffle(arr) {
+      var a = arr.slice();
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+      }
+      return a;
+    }
+
+    window.randomImage = function() {
+      var idx;
+      do { idx = Math.floor(Math.random() * IMG_DATA.length); }
+      while (idx === imgCurrentIndex && IMG_DATA.length > 1);
+      imgCurrentIndex = idx;
+
+      var container = document.getElementById('img-container');
+      container.innerHTML = '<img src="' + IMG_DATA[idx].src + '" style="width:100%;height:100%;object-fit:contain;border-radius:16px;" alt="?">';
+
+      var fb = document.getElementById('img-feedback');
+      fb.textContent = '';
+      fb.style.background = 'transparent';
+
+      var wrong = shuffle(IMG_DATA.filter(function(_, i){ return i !== idx; })).slice(0, 3);
+      var options = shuffle(wrong.concat([IMG_DATA[idx]]));
+
+      var wrap = document.getElementById('img-answer-buttons');
+      wrap.innerHTML = '';
+
+      options.forEach(function(opt) {
+        var btn = document.createElement('button');
+        btn.textContent = opt.label;
+        btn.style.cssText = 'padding:10px 20px;border:none;border-radius:12px;font-size:14px;font-weight:600;color:#3a2f4d;cursor:pointer;background:rgba(255,255,255,0.6);border:1px solid rgba(183,154,232,0.3);box-shadow:0 2px 8px rgba(120,90,160,0.08);transition:transform .2s ease,background .2s ease;';
+        btn.onmouseover = function(){ this.style.background='rgba(217,199,244,0.7)'; this.style.transform='translateY(-2px)'; };
+        btn.onmouseout  = function(){ this.style.background='rgba(255,255,255,0.6)'; this.style.transform='translateY(0)'; };
+        btn.addEventListener('click', function() {
+          window.checkImageAnswer(IMG_DATA.indexOf(opt));
+        });
+        wrap.appendChild(btn);
+      });
+    };
+
+    window.checkImageAnswer = function(chosenIndex) {
+      var fb = document.getElementById('img-feedback');
+      if (chosenIndex === imgCurrentIndex) {
+        imgCorrect++;
+        document.getElementById('imgCorrectCount').textContent = imgCorrect;
+        fb.textContent = '✓ Dobrze!';
+        fb.style.background = 'rgba(63,158,107,0.12)';
+        fb.style.color = '#2f8f5e';
+      } else {
+        imgWrong++;
+        document.getElementById('imgWrongCount').textContent = imgWrong;
+        fb.textContent = '✗ Źle — Jeśli nie pamiętasz, wróć do notatki "klucze" w zakładce kształcenie słuchu ( • ᴗ - ) ✧';
+        fb.style.background = 'rgba(217,96,142,0.1)';
+        fb.style.color = '#c84e84';
+      }
+    };
+`
+
+},
+{
+  id: "Rozpoznawanie gam po znakach przykluczowych",
+  title: "Rozpoznawanie gam po znakach przykluczowych",
+  heading: "Rozpoznawanie gam po znakach przykluczowych",
+  subtitle: "Wybierz pasującą tonację molową i durową do wylosowanych znakó przy kluczu",
+  body: [
+    `<div style="display:flex;flex-direction:column;gap:18px;">
+
+      <!-- LICZNIK -->
+      <div style="
+        display:inline-flex;align-items:center;gap:20px;
+        padding:10px 22px;border-radius:999px;
+        background:rgba(255,255,255,0.65);
+        border:1px solid rgba(183,154,232,0.3);
+        box-shadow:0 4px 16px rgba(120,90,160,0.1);
+        font-size:16px;font-weight:700;width:fit-content;
+      ">
+        <span>Dobrze: <span id="d2CorrectCount" style="color:#3f9e6b;">0</span></span>
+        <span>Źle: <span id="d2WrongCount" style="color:#d9608e;">0</span></span>
+      </div>
+
+      <!-- PRZYCISK LOSUJ -->
+      <div>
+        <button onclick="d2Random()" style="
+          padding:12px 26px;border:none;border-radius:14px;
+          font-size:15px;font-weight:700;color:#fff;cursor:pointer;
+          background:linear-gradient(120deg,#e7a9cf,#b79ae8 60%,#8fc2ed);
+          box-shadow:0 4px 14px rgba(120,90,160,0.18);
+          transition:transform .25s ease;
+        "
+        onmouseover="this.style.transform='translateY(-2px)'"
+        onmouseout="this.style.transform='translateY(0)'">
+          ▶ Losuj
+        </button>
+      </div>
+
+      <!-- OBRAZEK -->
+      <div id="d2-container" style="
+        width:220px;height:180px;
+        border-radius:18px;
+        background:rgba(255,255,255,0.5);
+        border:1px solid rgba(183,154,232,0.3);
+        box-shadow:0 4px 18px rgba(120,90,160,0.1);
+        display:flex;align-items:center;justify-content:center;
+        overflow:hidden;
+      ">
+        <span style="color:#b79ae8;font-size:14px;">♭ ♯ ♮ Gotowy? ♭ ♯ ♮</span>
+      </div>
+
+      <!-- INFO ile wybrano -->
+      <div id="d2-selection-info" style="font-size:14px;color:#6c5f82;min-height:20px;"></div>
+
+      <!-- PRZYCISK SPRAWDŹ -->
+      <div>
+        <button id="d2-check-btn" onclick="d2Check()" disabled style="
+          padding:10px 22px;border:none;border-radius:12px;
+          font-size:14px;font-weight:700;color:#fff;cursor:not-allowed;
+          background:linear-gradient(120deg,#e7a9cf,#b79ae8 60%,#8fc2ed);
+          opacity:0.4;
+          box-shadow:0 4px 14px rgba(120,90,160,0.1);
+          transition:opacity .25s ease,transform .25s ease;
+        ">Sprawdź</button>
+      </div>
+
+      <!-- WSZYSTKIE OPCJE ODPOWIEDZI -->
+      <div id="d2-answer-buttons" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+
+      <!-- FEEDBACK -->
+      <div id="d2-feedback" style="
+        min-height:36px;font-size:17px;font-weight:700;
+        padding:10px 18px;border-radius:14px;
+        background:transparent;transition:all .3s ease;
+      "></div>
+
+    </div>`
+  ],
+  script: `
+    /* ============================================================
+       TUTAJ UZUPEŁNIJ:
+       - src: nazwa pliku obrazka
+       - labels: dokładnie DWA stringi z poprawnymi odpowiedziami
+         (muszą być takie same jak w ALL_OPTIONS poniżej)
+       ============================================================ */
+    var D2_DATA = [
+      { src: 'Z0.jpg', labels: ['C dur', 'a moll'] },
+      { src: 'ZK1.jpg', labels: ['G dur', 'e moll'] },
+      { src: 'ZB1.jpg', labels: ['F dur', 'd moll'] },
+      { src: 'ZK2.jpg', labels: ['D dur ', 'h moll'] },
+      { src: 'ZB2.jpg', labels: ['B dur', 'g moll'] },
+      { src: 'ZK3.jpg', labels: ['A dur', 'fis moll'] },
+      { src: 'ZB3.jpg', labels: ['Es dur', 'c moll'] },
+      { src: 'ZK4.jpg', labels: ['E dur', 'cis moll'] },
+      { src: 'ZB4.jpg', labels: ['As dur', 'f moll'] },
+      { src: 'ZK5.jpg', labels: ['H dur', 'gis moll'] },
+      { src: 'ZB5.jpg', labels: ['Des dur', 'b moll'] },
+      { src: 'ZK6.jpg', labels: ['Fis dur', 'dis moll'] },
+      { src: 'ZB6.jpg', labels: ['Ges dur', 'es moll'] },
+     /* { src: 'ZK7.jpg', labels: ['Gis dur', 'eis moll'] },
+      { src: 'ZB7.jpg', labels: ['Ces dur', 'as moll'] }, */
+    ];
+
+    /* Pełna lista wszystkich opcji wyświetlanych pod obrazkiem */
+    var D2_ALL_OPTIONS = [
+
+      'Des dur','b moll','Fis dur', 'dis moll',
+      'C dur','a moll','G dur', 'e moll',
+      'F dur','d moll','D dur', 'h moll',
+      'B dur','g moll','A dur', 'fis moll',
+      'Es dur','c moll','E dur', 'cis moll',
+      'As dur','f moll','H dur', 'gis moll',
+      'B dur','g moll','A dur', 'fis moll',
+      'Ges dur','es moll','Gis dur', 'es moll', 
+      /*
+            'C dur', 'Des dur', 'D dur', 'Es dur',
+      'E dur', 'F dur', 'Fis dur', 'Ges dur',
+      'G dur', 'As dur', 'A dur', 'B dur', 
+      'H dur', 
+      'c moll', 'cis moll', d moll, 'dis moll',
+      'es moll', 'f moll', 'fis moll', 'g moll',
+      'gis moll', 'as moll', 'a moll', 'b moll', 
+      'h moll',
+      */
+
+   
+    ];
+    /* ============================================================ */
+
+    var d2Correct      = 0;
+    var d2Wrong        = 0;
+    var d2CurrentIndex = -1;
+    var d2Selected     = [];   /* max 2 kliknięte indeksy z D2_ALL_OPTIONS */
+    var d2Answered     = false;
+
+    window.d2Random = function() {
+      var idx;
+      do { idx = Math.floor(Math.random() * D2_DATA.length); }
+      while (idx === d2CurrentIndex && D2_DATA.length > 1);
+      d2CurrentIndex = idx;
+      d2Selected     = [];
+      d2Answered     = false;
+
+      /* obrazek */
+      document.getElementById('d2-container').innerHTML =
+        '<img src="' + D2_DATA[idx].src + '" style="width:100%;height:100%;object-fit:contain;border-radius:16px;" alt="?">';
+
+      /* reset feedback i info */
+      var fb = document.getElementById('d2-feedback');
+      fb.textContent = '';
+      fb.style.background = 'transparent';
+      document.getElementById('d2-selection-info').textContent = 'Wybierz dwie odpowiedzi.';
+
+      /* zablokuj przycisk Sprawdź */
+      var checkBtn = document.getElementById('d2-check-btn');
+      checkBtn.disabled = true;
+      checkBtn.style.opacity = '0.4';
+      checkBtn.style.cursor  = 'not-allowed';
+
+      /* renderuj wszystkie przyciski odpowiedzi */
+      var wrap = document.getElementById('d2-answer-buttons');
+      wrap.innerHTML = '';
+
+      D2_ALL_OPTIONS.forEach(function(label, i) {
+        var btn = document.createElement('button');
+        btn.id = 'd2-btn-' + i;
+        btn.textContent = label;
+        btn.style.cssText = [
+          'padding:10px 20px',
+          'border:none',
+          'border-radius:12px',
+          'font-size:14px',
+          'font-weight:600',
+          'color:#3a2f4d',
+          'cursor:pointer',
+          'background:rgba(255,255,255,0.6)',
+          'border:1px solid rgba(183,154,232,0.3)',
+          'box-shadow:0 2px 8px rgba(120,90,160,0.08)',
+          'transition:transform .2s ease,background .2s ease',
+        ].join(';');
+
+        btn.addEventListener('click', function() { d2Toggle(i, btn); });
+        wrap.appendChild(btn);
+      });
+    };
+
+    function d2Toggle(i, btn) {
+      if (d2Answered) return;
+
+      var pos = d2Selected.indexOf(i);
+      if (pos !== -1) {
+        /* odznacz */
+        d2Selected.splice(pos, 1);
+        btn.style.background = 'rgba(255,255,255,0.6)';
+        btn.style.transform  = 'translateY(0)';
+        btn.style.border     = '1px solid rgba(183,154,232,0.3)';
+      } else {
+        if (d2Selected.length >= 2) return; /* max 2 */
+        /* zaznacz */
+        d2Selected.push(i);
+        btn.style.background = 'rgba(183,154,232,0.55)';
+        btn.style.transform  = 'translateY(-2px)';
+        btn.style.border     = '1px solid #b79ae8';
+      }
+
+      var info = document.getElementById('d2-selection-info');
+      var checkBtn = document.getElementById('d2-check-btn');
+
+      if (d2Selected.length === 2) {
+        info.textContent = 'Wybrano 2 — kliknij „Sprawdź".';
+        checkBtn.disabled = false;
+        checkBtn.style.opacity = '1';
+        checkBtn.style.cursor  = 'pointer';
+      } else {
+        info.textContent = 'Wybierz jeszcze ' + (2 - d2Selected.length) + '.';
+        checkBtn.disabled = true;
+        checkBtn.style.opacity = '0.4';
+        checkBtn.style.cursor  = 'not-allowed';
+      }
+    }
+
+    window.d2Check = function() {
+      if (d2Selected.length < 2 || d2Answered) return;
+      d2Answered = true;
+
+      var correctLabels = D2_DATA[d2CurrentIndex].labels;
+      var chosenLabels  = d2Selected.map(function(i){ return D2_ALL_OPTIONS[i]; });
+
+      /* porównaj niezależnie od kolejności */
+      var isCorrect =
+        chosenLabels.length === 2 &&
+        correctLabels.every(function(l){ return chosenLabels.indexOf(l) !== -1; });
+
+      var fb = document.getElementById('d2-feedback');
+
+      /* pokoloruj przyciski */
+      D2_ALL_OPTIONS.forEach(function(label, i) {
+        var btn = document.getElementById('d2-btn-' + i);
+        if (!btn) return;
+        var isCorrectOption = correctLabels.indexOf(label) !== -1;
+        var isChosen        = d2Selected.indexOf(i) !== -1;
+
+        if (isCorrectOption) {
+          btn.style.background = 'rgba(63,158,107,0.2)';
+          btn.style.border     = '1px solid #3f9e6b';
+          btn.style.color      = '#2f8f5e';
+        } else if (isChosen && !isCorrectOption) {
+          btn.style.background = 'rgba(217,96,142,0.15)';
+          btn.style.border     = '1px solid #d9608e';
+          btn.style.color      = '#c84e84';
+        }
+        btn.style.cursor = 'default';
+      });
+
+      if (isCorrect) {
+        d2Correct++;
+        document.getElementById('d2CorrectCount').textContent = d2Correct;
+        fb.textContent    = '✓ Dobrze! Obie odpowiedzi się zgadzają.';
+        fb.style.background = 'rgba(63,158,107,0.12)';
+        fb.style.color      = '#2f8f5e';
+      } else {
+        d2Wrong++;
+        document.getElementById('d2WrongCount').textContent = d2Wrong;
+        fb.textContent    = '✗ Źle. Poprawne odpowiedzi: ' + correctLabels.join(' + ');
+        fb.style.background = 'rgba(217,96,142,0.1)';
+        fb.style.color      = '#c84e84';
+      }
+
+      /* zablokuj przycisk Sprawdź */
+      var checkBtn = document.getElementById('d2-check-btn');
+      checkBtn.disabled = true;
+      checkBtn.style.opacity = '0.4';
+    };
+  `
+}
+
+] }
+    ]
+  },
+};
+/* ===================================================================== */
+
+let currentSubject = "ks";
+
+const appShell = document.querySelector('.app-shell');
+const homeLink = document.getElementById('home-link');
+const sidebarTitle = document.getElementById('sidebar-title');
+const sidebarList = document.getElementById('sidebar-list');
+const contentArea = document.getElementById('content-area');
+const subjectTilesEl = document.getElementById('subject-tiles');
+
+function setActiveSubjectTile(){
+  subjectTilesEl.querySelectorAll('.subject-tile').forEach(t => {
+    t.classList.toggle('active', t.dataset.subject === currentSubject);
+  });
+}
+
+function renderSidebar(){
+  const subject = SUBJECTS[currentSubject];
+  sidebarTitle.textContent = "Lekcje — " + subject.label;
+  sidebarList.innerHTML = '';
+
+  subject.lessons.forEach(lesson => {
+    lesson.sublessons.forEach(sub => {
+      const subTile = document.createElement('div');
+      subTile.className = 'sub-tile';
+      subTile.textContent = sub.title;
+      subTile.style.paddingLeft = '16px'; // usuń wcięcie podlekcji, teraz są na głównym poziomie
+      subTile.addEventListener('click', () => selectSublesson(lesson, sub, subTile));
+      sidebarList.appendChild(subTile);
+      if (sub.script) {
+  const s = document.createElement('script');
+  s.textContent = sub.script;
+  contentArea.appendChild(s);}
+    });
+  });
+}
+
+function selectSublesson(lesson, sub, tileEl){
+  document.querySelectorAll('.sub-tile.active').forEach(el => el.classList.remove('active'));
+  tileEl.classList.add('active');
+
+  const bodyHtml = sub.body.map(p => `<p>${p}</p>`).join('');
+
+  contentArea.innerHTML = `
+    <div class="lesson-content">
+      <span class="eyebrow">${SUBJECTS[currentSubject].label}</span>
+      <h1 class="lesson-title">${sub.heading}</h1>
+      <p class="lesson-subtitle">${sub.subtitle}</p>
+      <div class="lesson-body">${bodyHtml}</div>
+    </div>
+  `;
+
+  if (window.innerWidth <= 900){
+    contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function renderWelcome(){
+  const subject = SUBJECTS[currentSubject];
+  contentArea.innerHTML = `
+    <div class="welcome-screen lesson-content">
+      <img src="logo.png" alt="LM" width="70" height="70">
+      <h1 class="lesson-title">Witaj na platformie Laboratorium Muzyki ˖♬⋆.˚𝄞</h1>
+      <p class="lesson-subtitle">Poznaj zasady muzyki dzięki naszym krótkim lekcjom (˶ˆᗜˆ˵)</p>
+      <p class="lesson-body">Wybierz przedmiot z panelu u góry i kliknij na konkretne lekcje z panelu bocznego! 
+        Treść pojawi się w tym miejscu</p>
+    </div>
+  `;
+}
+
+function renderHomeView(){
+  document.querySelectorAll('.sub-tile.active').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.lesson-tile.active-parent').forEach(el => el.classList.remove('active-parent'));
+
+  appShell.classList.add('home-mode');
+
+  contentArea.innerHTML = `
+    <div class="welcome-screen lesson-content">
+      <img src="logo.png" alt="LM" width="300" height="300">
+      <h1 class="lesson-title">Witaj na platformie Laboratorium Muzyki˖ ♬⋆.˚𝄞</h1>
+      <p class="lesson-subtitle">Poznaj muzykę dzięki naszym krótkim lekcjom. (˶ˆᗜˆ˵)</p>
+      <p class="lesson-body">Wybierz przedmiot z panelu u góry i kliknij na konkretne lekcje z panelu bocznego!</p>
+    </div>
+  `;
+}
+
+function showSubjectLayout(){
+  appShell.classList.remove('home-mode');
+}
+
+/* ===== "O nas" — strona bez sidebaru, tekst do uzupełnienia ===== */
+function renderAboutView(){
+  document.querySelectorAll('.sub-tile.active').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.lesson-tile.active-parent').forEach(el => el.classList.remove('active-parent'));
+
+  appShell.classList.add('home-mode');
+
+  contentArea.innerHTML = `
+    <div class="lesson-content about-page">
+      <span class="eyebrow">O nas</span>
+      <h1 class="lesson-title">Poznaj nasze uniwersum</h1>
+      <p class="lesson-subtitle">Kim jesteśmy i dlaczego powstała ta platforma?</p>
+      <div class="lesson-body">
+        <p>Nasze Laboratorium powstało w celu dzielenia się wiedzą muzyczną z wszystkimi, którzy są zainteresowani tym tematem. Od samego początku byłyśmy nastawione na pomaganie w nauce muzykom lub amatorom mającym takie zainteresowania. Nasze materiały są tworzone przede wszystkim z myślą o niesieniu pomocy i dzieleniu się naszą wiedzą i doświadczeniem z tymi, których przerasta ilość materiału, który trzeba przyswoić i oswoić się z nim. Wiemy,
+ że są w szkołach muzycznych osoby, które mogą mieć trudności w zrozumieniu niektórych zagadnień. Jest też duża szansa, że część z Was, która ma takie problemy lub braki, może wstydzić się prosić o pomoc. Może też być tak,
+ że dotychczasowe źródła, z których korzystaliście, nie przekazywały tych informacji w zrozumiały i ciekawy sposób.
+</p>
+        <p style="color: #FF66C4;">Tutaj właśnie, całe na różowo, wkraczamy My - uczennice szkoły muzycznej, które oferują tę wiedzę w prosty i przystępny sposób.</p>
+        <p>Znajdziecie tutaj dużo grafik wyjaśniających każde omawiane zagadnienie, a same notatki są napisane bardzo prostym językiem.</p>
+        <p>Zebrane tutaj materiały są efektem naszej kilkumiesięcznej działalności w mediach społecznościowych. Jako Laboratorium muzyki mamy swoje konta na Instagramie oraz TikToku, gdzie oprócz zabawnych filmików, publikujemy wyjaśnienia opisywanej teorii w praktyce, jak i krótkie streszczenia notatek znajdujących się tutaj. Na kanale YouTube możecie znaleźć krótkie filmiki promujące naszą szkołę - Zespół Szkół Muzycznych I i II stopnia w Rudzie Śląskiej.</p>
+        <p>Na stronie umieściłyśmy zadania interaktywne, które pomogą wam w doskonaleniu swojego słuchu i swojej wiedzy.</p>
+      </div>
+    </div>
+  `;
+}
+
+function switchSubject(subjectKey){
+  showSubjectLayout();
+
+  if (subjectKey === "onas"){
+    currentSubject = subjectKey;
+    setActiveSubjectTile();
+    renderAboutView();
+    return;
+  }
+
+  if (subjectKey === currentSubject){
+    renderSidebar();
+    renderWelcome();
+    return;
+  }
+  currentSubject = subjectKey;
+  setActiveSubjectTile();
+  renderSidebar();
+  renderWelcome();
+}
+
+subjectTilesEl.querySelectorAll('.subject-tile').forEach(tile => {
+  tile.addEventListener('click', () => switchSubject(tile.dataset.subject));
+});
+
+homeLink.addEventListener('click', renderHomeView);
+
+currentSubject = "onas";
+setActiveSubjectTile();
+renderAboutView();
+
+/* PRELOADER — 0.5s przyciemnionego ekranu z logo, potem płynne przejście */
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('preloader').classList.add('hide');
+  }, 500);
+});
+</script>
 </body>
 </html>
